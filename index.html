@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Enriquez Family</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: monospace;
+      image-rendering: pixelated;
+    }
+
+    .scene {
+      text-align: center;
+    }
+
+    .family {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .pixel-char {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .row {
+      display: flex;
+    }
+
+    .p { width: 8px; height: 8px; }
+
+    /* Colors */
+    .skin { background: #f5c5a3; }
+    .hair-d { background: #4a2c0a; }
+    .hair-l { background: #c87533; }
+    .hair-r { background: #d44; }
+    .shirt-b { background: #3a86c8; }
+    .shirt-p { background: #e07aad; }
+    .shirt-g { background: #5ab55a; }
+    .shirt-y { background: #e8c840; }
+    .shirt-o { background: #e8833a; }
+    .pants { background: #3a3a6a; }
+    .pants-k { background: #5a4a3a; }
+    .shoe { background: #2a2a2a; }
+    .eye { background: #222; }
+    .mouth { background: #d46a6a; }
+    .cat-b { background: #555; }
+    .cat-e { background: #6d6; }
+    .cat-n { background: #faa; }
+    .cat-w { background: #ddd; }
+    .x { background: transparent; }
+
+    .ground {
+      width: 100%;
+      height: 4px;
+      background: #2a5a2a;
+      margin-top: 0;
+      border-radius: 2px;
+    }
+
+    .title {
+      color: #e8e8e8;
+      font-size: 14px;
+      letter-spacing: 4px;
+      margin-top: 32px;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+
+    .stars {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #fff;
+      opacity: 0.4;
+      animation: twinkle 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes twinkle {
+      0% { opacity: 0.2; }
+      100% { opacity: 0.8; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stars" id="stars"></div>
+
+  <div class="scene">
+    <div class="family" id="family"></div>
+    <div class="ground" style="width:320px; margin:0 auto;"></div>
+  </div>
+
+  <script>
+    // Star background
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 60; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.left = Math.random() * 100 + '%';
+      s.style.top = Math.random() * 60 + '%';
+      s.style.animationDelay = Math.random() * 3 + 's';
+      starsEl.appendChild(s);
+    }
+
+    /*
+      Each character is defined as a grid of color codes.
+      . = transparent, S = skin, D = dark hair, L = light hair,
+      R = red hair, B = blue shirt, P = pink shirt, G = green shirt,
+      Y = yellow shirt, O = orange shirt, N = pants, K = khaki pants,
+      H = shoe, E = eye, M = mouth,
+      C = cat body, W = cat white, CE = cat eye, CN = cat nose
+    */
+
+    const colorMap = {
+      '.': 'x', 'S': 'skin', 'D': 'hair-d', 'L': 'hair-l', 'R': 'hair-r',
+      'B': 'shirt-b', 'P': 'shirt-p', 'G': 'shirt-g', 'Y': 'shirt-y',
+      'O': 'shirt-o', 'N': 'pants', 'K': 'pants-k', 'H': 'shoe',
+      'E': 'eye', 'M': 'mouth', 'C': 'cat-b', 'W': 'cat-w',
+      'F': 'cat-e', 'Q': 'cat-n'
+    };
+
+    // Dad - tall, dark hair, blue shirt
+    const dad = [
+      '.DDD.',
+      'DDDDD',
+      'SESED',
+      'SSMSS',
+      '.SSS.',
+      'BBBBB',
+      'BBBBB',
+      'BBBBB',
+      '.NNN.',
+      '.NNN.',
+      '.H.H.',
+    ];
+
+    // Mom - tall, light hair, pink shirt
+    const mom = [
+      '.LLL.',
+      'LLLLL',
+      'LESEL',
+      'LSMSL',
+      '.SSS.',
+      'PPPPP',
+      'PPPPP',
+      'PPPPP',
+      '.KKK.',
+      '.KKK.',
+      '.H.H.',
+    ];
+
+    // Kid 1 - medium, dark hair, green shirt
+    const kid1 = [
+      '...',
+      '.D.',
+      'DDD',
+      'EDE',
+      'SMS',
+      'GGG',
+      'GGG',
+      'NNN',
+      'NNN',
+      'H.H',
+      '...',
+    ];
+
+    // Kid 2 - small, dark hair, yellow shirt
+    const kid2 = [
+      '...',
+      '...',
+      '.D.',
+      'DDD',
+      'EDE',
+      'SMS',
+      'YYY',
+      'YYY',
+      'NNN',
+      'H.H',
+      '...',
+    ];
+
+    // Kid 3 - small, dark hair, orange shirt
+    const kid3 = [
+      '...',
+      '...',
+      '.D.',
+      'DDD',
+      'EDE',
+      'SMS',
+      'OOO',
+      'OOO',
+      'NNN',
+      'H.H',
+      '...',
+    ];
+
+    // Cat - small, grey with green eyes
+    const cat = [
+      '....',
+      '....',
+      '....',
+      '....',
+      '....',
+      'C..C',
+      'CCCC',
+      'FCFC',
+      'CQCC',
+      'CCCC',
+      '.CC.',
+    ];
+
+    const characters = [kid2, dad, kid1, mom, kid3, cat];
+
+    const familyEl = document.getElementById('family');
+
+    characters.forEach(charGrid => {
+      const charDiv = document.createElement('div');
+      charDiv.className = 'pixel-char';
+
+      charGrid.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'row';
+        for (const ch of row) {
+          const px = document.createElement('div');
+          px.className = 'p ' + (colorMap[ch] || 'x');
+          rowDiv.appendChild(px);
+        }
+        charDiv.appendChild(rowDiv);
+      });
+
+      familyEl.appendChild(charDiv);
+    });
+  </script>
+
+</body>
+</html>
