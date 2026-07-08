@@ -3,22 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#131328">
   <title>The Enriquez Family</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    html { background: #1a1a2e; }
+
     body {
-      background: #1a1a2e;
+      background: linear-gradient(#131328, #1a1a2e 55%, #222240);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      font-family: monospace;
+      min-height: 100svh;
+      font-family: ui-monospace, 'SF Mono', Menlo, monospace;
       image-rendering: pixelated;
     }
 
     .scene {
       text-align: center;
+      animation: fadein 1.4s ease-out both;
     }
 
     .family {
@@ -61,21 +66,15 @@
     .cat-w { background: #ddd; }
     .x { background: transparent; }
 
+    /* The cat slow-blinks now and then */
+    .cat-e { animation: blink-cat 8s linear var(--blink, 0s) infinite; }
+
     .ground {
       width: 100%;
       height: 4px;
-      background: #2a5a2a;
+      background: linear-gradient(#2f652f 50%, #224a22 50%);
       margin-top: 0;
       border-radius: 2px;
-    }
-
-    .title {
-      color: #e8e8e8;
-      font-size: 14px;
-      letter-spacing: 4px;
-      margin-top: 32px;
-      text-transform: uppercase;
-      opacity: 0.7;
     }
 
     .stars {
@@ -83,6 +82,7 @@
       top: 0; left: 0; right: 0; bottom: 0;
       pointer-events: none;
       overflow: hidden;
+      animation: fadein 2.4s ease-out both;
     }
 
     .star {
@@ -94,18 +94,51 @@
       animation: twinkle 3s ease-in-out infinite alternate;
     }
 
+    .shooting-star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #fff;
+      box-shadow:
+        2px -2px 0 rgba(255, 255, 255, 0.7),
+        4px -4px 0 rgba(255, 255, 255, 0.45),
+        6px -6px 0 rgba(255, 255, 255, 0.25),
+        8px -8px 0 rgba(255, 255, 255, 0.1);
+      animation: shoot 1.1s ease-out forwards;
+    }
+
     @keyframes twinkle {
       0% { opacity: 0.2; }
       100% { opacity: 0.8; }
+    }
+
+    @keyframes blink-cat {
+      0%, 90% { background: #6d6; }
+      91%, 97% { background: #555; }
+      98%, 100% { background: #6d6; }
+    }
+
+    @keyframes shoot {
+      0% { transform: translate(0, 0); opacity: 0; }
+      10% { opacity: 0.9; }
+      100% { transform: translate(-110px, 110px); opacity: 0; }
+    }
+
+    @keyframes fadein {
+      from { opacity: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
     }
   </style>
 </head>
 <body>
 
-  <div class="stars" id="stars"></div>
+  <div class="stars" id="stars" aria-hidden="true"></div>
 
   <div class="scene">
-    <div class="family" id="family"></div>
+    <div class="family" id="family" role="img" aria-label="Pixel-art portrait of the Enriquez family: two parents, three kids, and the cat"></div>
     <div class="ground" style="width:320px; margin:0 auto;"></div>
   </div>
 
@@ -115,11 +148,30 @@
     for (let i = 0; i < 60; i++) {
       const s = document.createElement('div');
       s.className = 'star';
+      const size = Math.random() < 0.15 ? 3 : 2;
+      s.style.width = size + 'px';
+      s.style.height = size + 'px';
       s.style.left = Math.random() * 100 + '%';
       s.style.top = Math.random() * 60 + '%';
-      s.style.animationDelay = Math.random() * 3 + 's';
+      s.style.animationDuration = 2.5 + Math.random() * 2 + 's';
+      s.style.animationDelay = -Math.random() * 4 + 's';
       starsEl.appendChild(s);
     }
+
+    // A rare shooting star, every 7-18 seconds
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function scheduleShootingStar() {
+      setTimeout(() => {
+        const s = document.createElement('div');
+        s.className = 'shooting-star';
+        s.style.left = 25 + Math.random() * 55 + '%';
+        s.style.top = 5 + Math.random() * 25 + '%';
+        s.addEventListener('animationend', () => s.remove());
+        starsEl.appendChild(s);
+        scheduleShootingStar();
+      }, 7000 + Math.random() * 11000);
+    }
+    if (!reducedMotion) scheduleShootingStar();
 
     /*
       Each character is defined as a grid of color codes.
@@ -127,7 +179,7 @@
       R = red hair, B = blue shirt, P = pink shirt, G = green shirt,
       Y = yellow shirt, O = orange shirt, N = pants, K = khaki pants,
       H = shoe, E = eye, M = mouth,
-      C = cat body, W = cat white, CE = cat eye, CN = cat nose
+      C = cat body, W = cat white, F = cat eye, Q = cat nose
     */
 
     const colorMap = {
@@ -171,6 +223,7 @@
     // Kid 1 - medium, dark hair, green shirt
     const kid1 = [
       '...',
+      '...',
       '.D.',
       'DDD',
       'EDE',
@@ -180,13 +233,13 @@
       'NNN',
       'NNN',
       'H.H',
-      '...',
     ];
 
     // Kid 2 - small, dark hair, yellow shirt
     const kid2 = [
       '...',
       '...',
+      '...',
       '.D.',
       'DDD',
       'EDE',
@@ -195,13 +248,13 @@
       'YYY',
       'NNN',
       'H.H',
-      '...',
     ];
 
     // Kid 3 - small, dark hair, orange shirt
     const kid3 = [
       '...',
       '...',
+      '...',
       '.D.',
       'DDD',
       'EDE',
@@ -210,7 +263,6 @@
       'OOO',
       'NNN',
       'H.H',
-      '...',
     ];
 
     // Cat - small, grey with green eyes
@@ -228,15 +280,9 @@
       '.CC.',
     ];
 
-    const characters = [kid2, dad, kid1, mom, kid3, cat];
-
-    const familyEl = document.getElementById('family');
-
-    characters.forEach(charGrid => {
-      const charDiv = document.createElement('div');
-      charDiv.className = 'pixel-char';
-
-      charGrid.forEach(row => {
+    function buildGrid(grid) {
+      const div = document.createElement('div');
+      grid.forEach(row => {
         const rowDiv = document.createElement('div');
         rowDiv.className = 'row';
         for (const ch of row) {
@@ -244,9 +290,19 @@
           px.className = 'p ' + (colorMap[ch] || 'x');
           rowDiv.appendChild(px);
         }
-        charDiv.appendChild(rowDiv);
+        div.appendChild(rowDiv);
       });
+      return div;
+    }
 
+    const characters = [kid2, dad, kid1, mom, kid3, cat];
+
+    const familyEl = document.getElementById('family');
+
+    characters.forEach(charGrid => {
+      const charDiv = buildGrid(charGrid);
+      charDiv.className = 'pixel-char';
+      charDiv.style.setProperty('--blink', (-Math.random() * 6).toFixed(1) + 's');
       familyEl.appendChild(charDiv);
     });
   </script>
